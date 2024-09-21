@@ -5,6 +5,7 @@ namespace App\Services;
 use Solarium\Client;
 use Solarium\Core\Client\Adapter\Curl;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use App\Models\Category;
 
 class SolrService
 {
@@ -12,14 +13,11 @@ class SolrService
 
     public function __construct()
     {
-        // Set up Solr configuration
         $config = config('solarium');
 
-        // Create the adapter and event dispatcher
         $adapter = new Curl();
         $eventDispatcher = new EventDispatcher();
 
-        // Initialize Solarium client
         $this->client = new Client($adapter, $eventDispatcher, $config);
     }
 
@@ -49,5 +47,51 @@ class SolrService
         }
 
         return $categories;
+    }
+
+    /**
+     * Index all categories from the database into Solr.
+     *
+     * @return void
+     */
+    public function indexAllCategories(): void
+    {
+        $update = $this->client->createUpdate();
+
+        $categories = Category::with('children')->get();
+
+        $this->indexCategoriesRecursively($update, $categories);
+
+        $update->addCommit();
+        $this->client->update($update);
+    }
+
+    /**
+     * Recursively index categories and subcategories into Solr.
+     *
+     * @param mixed $update
+     * @param mixed $categories
+     * @return void
+     */
+    private function indexCategoriesRecursively($update, $categories): void
+    {
+        foreach ($categories as $category) {
+            $doc = $update->createDocument();
+            $doc->id = $category->id;
+            $doc->name_lv = $category->name_lv;
+            $doc->name_en = $category->name_en;
+            $doc->name_ru = $category->name_ru;
+            $doc->slug_lv = $category->slug_lv;
+            $doc->slug_en = $category->slug_en;
+            $doc->slug_ru = $category->slug_ru;
+            $doc->parent_id = $category->parent_id;
+
+            $update->addDocument($doc);
+
+            // Recursively index children (subcategories)
+            if ($category->children->isNotEmpty()) {
+                $this->indexCategoriesRecursively($update, $category->children);
+            }
+        }
     }
 }
