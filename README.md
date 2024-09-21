@@ -1,66 +1,107 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Project Name: Advertisement portal
 
-## About Laravel
+## Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This project is an advertisement platform where users can post ads for selling items such as electronics, cars, real estate, etc. The system is built using **Laravel**, **PostgreSQL** for data storage, and **Solr** for fast searching and indexing. We use **Jetstream** for authentication and **Telescope** for monitoring the app's performance during development.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Table of Contents
 
-## Learning Laravel
+- [Configuration](#configuration)
+- [Database Schema](#database-schema)
+- [Solr Integration](#solr-integration)
+  - [Solr Indexing Command](#solr-indexing-command)
+  - [Design Pattern](#design-pattern)
+- [Solr and Database Workflow](#solr-and-database-workflow)
+- [License](#license)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Configuration
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### `.env` Configuration
 
-## Laravel Sponsors
+Add your **PostgreSQL** and **Solr** configurations in the `.env` file:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```dotenv
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=your_database
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 
-### Premium Partners
+SOLR_HOST=127.0.0.1
+SOLR_PORT=8983
+SOLR_CORE=advertisement_portal_core
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### Solarium Configuration (`config/solarium.php`)
 
-## Contributing
+The Solr client is configured using `config/solarium.php`. This configuration file defines the host, port, and core for connecting to Solr.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```php
+return [
+    'endpoint' => [
+        'localhost' => [
+            'host' => env('SOLR_HOST', '127.0.0.1'),
+            'port' => env('SOLR_PORT', 8983),
+            'path' => '/',
+            'core' => env('SOLR_CORE', 'advertisement_portal_core'),
+        ],
+    ],
+];
+```
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Database Schema
 
-## Security Vulnerabilities
+The database schema is set up using **PostgreSQL**. Categories and subcategories are stored in a **nested parent-child structure**. The `categories` table contains translations for names and slugs in three languages (Latvian, English, Russian).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Categories Table Structure
 
-## License
+- `id`: Primary key
+- `parent_id`: Foreign key referencing the parent category
+- `name_lv`, `name_en`, `name_ru`: Translated category names
+- `slug_lv`, `slug_en`, `slug_ru`: Translated slugs for URLs
+- `created_at`, `updated_at`: Timestamps
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Solr Integration
+
+### Indexing Categories to Solr
+
+Categories and subcategories are stored in **PostgreSQL** but indexed in **Solr** for fast searching. To index all categories from the database into Solr, use the provided command:
+
+#### Indexing Command
+
+```bash
+php artisan solr:index-categories
+```
+
+This command:
+1. **Fetches categories** and their subcategories from the database.
+2. **Indexes them** into Solr recursively.
+3. **Commits the changes** to Solr for fast searching.
+
+#### Design Pattern
+
+We used the **Factory Method** pattern to decouple the logic for connecting to Solr and managing category indexing. The `SolrService` handles Solr-related operations such as fetching, updating, and indexing data.
+
+- **SolrService**: A service class responsible for interacting with Solr.
+- **Factory Method**: Used to abstract the creation of Solr clients and services, making it easier to change Solr configurations in the future.
+
+---
+
+## Solr and Database Workflow
+
+1. **PostgreSQL**: All categories, subcategories, and listings are stored in the database.
+2. **Solr**: Data from the database is indexed into Solr for fast searching.
+3. **Indexing**: After any changes to the categories in the database, run `php artisan solr:index-categories` to update Solr.
+4. **Monitoring**: Use Laravel Telescope to monitor indexing performance and query execution during development.
+
+---
