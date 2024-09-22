@@ -12,8 +12,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Category extends Model
 {
     protected $fillable = [
-        'name_lv', 'name_en', 'name_ru',
-        'slug_lv', 'slug_en', 'slug_ru',
+        'name_lv',
+        'name_en',
+        'name_ru',
+        'slug_lv',
+        'slug_en',
+        'slug_ru',
         'parent_id'
     ];
 
@@ -35,5 +39,15 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
+    }
+
+    /**
+     * Get the icon path for the category.
+     *
+     * @return string
+     */
+    public function getIconPath(): string
+    { 
+        return "svg/categories/{$this->slug_en}.svg";
     }
 }
