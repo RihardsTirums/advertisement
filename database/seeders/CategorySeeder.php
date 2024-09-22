@@ -39,6 +39,17 @@ class CategorySeeder extends Seeder
             'parent_id' => $electronics->id, // Elektronika is the parent
         ]);
 
+        // Subcategory under Elektronika
+        $householdAppliances = Category::create([
+            'name_lv' => 'Sadzīves tehnika',
+            'name_en' => 'Household appliances',
+            'name_ru' => 'Бытовая техника',
+            'slug_lv' => 'sadzives-tehnika',
+            'slug_en' => 'household-appliances',
+            'slug_ru' => 'bytovaya-tehnika',
+            'parent_id' => $electronics->id, // Elektronika is the parent
+        ]);
+
         // Sub-subcategory under Sakaru līdzekļi
         $mobilePhones = Category::create([
             'name_lv' => 'Mobilie telefoni',
