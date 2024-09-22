@@ -14,8 +14,10 @@ This project is an advertisement platform where users can post ads for selling i
 - [Solr Integration](#solr-integration)
   - [Solr Indexing Command](#solr-indexing-command)
   - [Design Pattern](#design-pattern)
+- [Language Switching](#language-switching)
+  - [How It Works](#how-it-works)
+  - [Design Pattern](#design-pattern)
 - [Solr and Database Workflow](#solr-and-database-workflow)
-- [License](#license)
 
 ---
 
@@ -94,6 +96,25 @@ We used the **Factory Method** pattern to decouple the logic for connecting to S
 
 - **SolrService**: A service class responsible for interacting with Solr.
 - **Factory Method**: Used to abstract the creation of Solr clients and services, making it easier to change Solr configurations in the future.
+
+---
+
+## Language Switching
+
+### How It Works
+
+The application supports language switching between Latvian, English, and Russian. The user can change the language using a dropdown menu, and the language is stored in the session to persist across pages.
+
+The session-based language switching is implemented using the **Strategy Pattern**. This allows for flexibility in how the language preference is stored (e.g., sessions, cookies, etc.).
+
+### Design Pattern
+
+We implemented the **Strategy Pattern** for language switching to separate the logic for how the language preference is stored from the controller logic.
+
+- **LanguageStrategy Interface**: Defines how the locale should be set and stored.
+- **SessionLanguageStrategy**: Implements the strategy for storing the locale in the session.
+- **LocalizationController**: Handles requests to change the language and delegates the storage logic to the strategy.
+- **Middleware**: Ensures the locale is applied on every request based on the session data.
 
 ---
 
