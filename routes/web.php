@@ -12,6 +12,10 @@ Route::middleware([Localization::class])->group(function () {
 
     // Route to display categories
     Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
+    // Handle subcategories with dynamic slugs (allows for unlimited depth).
+    Route::get('/{path}', [CategoryController::class, 'show'])
+        ->where('path', '.*')
+        ->name('categories.show');
 
     // Authenticated routes
     Route::middleware([
