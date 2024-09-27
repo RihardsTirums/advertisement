@@ -2,52 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\Interfaces\CategoryRepository;
+use App\Services\CategoryService;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Controller class for handling category-related requests.
+ */
 class CategoryController extends Controller
 {
-    protected CategoryRepository $categoryRepository;
+    private CategoryService $categoryService;
 
-    public function __construct(CategoryRepository $categoryRepository)
+    public function __construct(CategoryService $categoryService)
     {
-        $this->categoryRepository = $categoryRepository;
+        $this->categoryService = $categoryService;
     }
 
     /**
-     * Display the main categories and their subcategories.
+     * Display a listing of the main categories on the index page.
      *
      * @return View
      */
     public function index(): View
     {
-        $locale = app()->getLocale();
-        $categories = $this->categoryRepository->getCategoriesForIndexPage();
-
-        // Pass the locale to the view
-        return view('categories.index', compact('categories', 'locale'));
+        $categories = $this->categoryService->getAllMainCategoriesWithSubcategories();
+        return view('categories.index', compact('categories'));
     }
 
     /**
-     * Display a specific category and its subcategories based on the slug path.
+     * Display the subcategories for a given path.
      *
-     * @param string $path
+     * @param Request $request
+     * @param string|null $path
      * @return View
      */
-    public function show(string $path): View
+    public function show(Request $request, string $path = null): View
     {
+        // Extract slug segments from the path.
         $slugs = explode('/', $path);
-        $locale = app()->getLocale();
-        $category = $this->categoryRepository->findByFullPath($slugs);
 
-        if (!$category) {
-            abort(404);
-        }
+        // Fetch the categories and subcategories based on the path.
+        $category = $this->categoryService->getCategoryBySlugs($slugs);
 
-        $subcategories = $this->categoryRepository->getNextLevelSubcategories($category->id);
-        $breadcrumb = $this->categoryRepository->getBreadcrumbFromSlugs($slugs);
-
-        return view('categories.show', compact('category', 'subcategories', 'breadcrumb', 'slugs', 'locale'));
+        // Render the subcategories view if a valid category is found.
+        return view('categories.show', compact('category'));
     }
 }
-

@@ -8,9 +8,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Category model for categories and subcategories.
+ *
+ * @property string $name_lv
+ * @property string $name_en
+ * @property string $name_ru
+ * @property string $slug_lv
+ * @property string $slug_en
+ * @property string $slug_ru
+ * @property int|null $parent_id
  */
 class Category extends Model
 {
+    private string $nameField;
+    private string $slugField;
+
     protected $fillable = [
         'name_lv',
         'name_en',
@@ -20,6 +31,12 @@ class Category extends Model
         'slug_ru',
         'parent_id'
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->setLocaleFields();
+    }
 
     /**
      * Get the parent category (if this is a subcategory).
@@ -47,7 +64,36 @@ class Category extends Model
      * @return string
      */
     public function getIconPath(): string
-    { 
+    {
         return "svg/categories/{$this->slug_en}.svg";
+    }
+
+    /**
+     * Set locale-specific fields for name and slug.
+     */
+    private function setLocaleFields(): void
+    {
+        $this->nameField = 'name_' . app()->getLocale();
+        $this->slugField = 'slug_' . app()->getLocale();
+    }
+
+    /**
+     * Get the localized name field.
+     *
+     * @return string
+     */
+    public function getNameField(): string
+    {
+        return $this->nameField;
+    }
+
+    /**
+     * Get the localized slug field.
+     *
+     * @return string
+     */
+    public function getSlugField(): string
+    {
+        return $this->slugField;
     }
 }
