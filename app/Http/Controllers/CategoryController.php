@@ -13,9 +13,12 @@ class CategoryController extends Controller
 {
     private CategoryService $categoryService;
 
-    public function __construct(CategoryService $categoryService)
+    public function __construct(CategoryService $categoryService, Request $request)
     {
         $this->categoryService = $categoryService;
+
+        // Set the canonical URL for all category-related pages.
+        $this->setCanonicalUrl($request);
     }
 
     /**
