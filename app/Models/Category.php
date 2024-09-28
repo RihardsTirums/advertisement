@@ -19,9 +19,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Category extends Model
 {
-    private string $nameField;
-    private string $slugField;
-
     protected $fillable = [
         'name_lv',
         'name_en',
@@ -35,7 +32,6 @@ class Category extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->setLocaleFields();
     }
 
     /**
@@ -69,31 +65,22 @@ class Category extends Model
     }
 
     /**
-     * Set locale-specific fields for name and slug.
-     */
-    private function setLocaleFields(): void
-    {
-        $this->nameField = 'name_' . app()->getLocale();
-        $this->slugField = 'slug_' . app()->getLocale();
-    }
-
-    /**
-     * Get the localized name field.
+     * Get the localized name based on the current application locale.
      *
      * @return string
      */
-    public function getNameField(): string
+    public function getName(): string
     {
-        return $this->nameField;
+        return $this->{'name_' . app()->getLocale()} ?? $this->{'name_' . config('app.fallback_locale')};
     }
 
     /**
-     * Get the localized slug field.
+     * Get the localized slug based on the current application locale.
      *
      * @return string
      */
-    public function getSlugField(): string
+    public function getSlug(): string
     {
-        return $this->slugField;
+        return $this->{'slug_' . app()->getLocale()} ?? $this->{'slug_' . config('app.fallback_locale')};
     }
 }

@@ -21,12 +21,30 @@ class Localization
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Get the locale code from the session or use the default app locale
-        $locale = session('localization', config('app.locale'));
+        // Get the locale code from the `lang` cookie or use the default app locale
+        $locale = $request->cookie('lang', config('app.locale'));
 
         // Set the application locale using the locale code
         App::setLocale($locale);
 
         return $next($request);
     }
+
+    /**
+     * Handle an incoming request and set the locale.
+     *
+     * @param Request $request The incoming HTTP request.
+     * @param Closure $next The next middleware in the pipeline.
+     * @return Response
+     */
+    // public function handle(Request $request, Closure $next): Response
+    // {
+    //     // Get the locale code from the session or use the default app locale
+    //     $locale = session('localization', config('app.locale'));
+
+    //     // Set the application locale using the locale code
+    //     App::setLocale($locale);
+
+    //     return $next($request);
+    // }
 }

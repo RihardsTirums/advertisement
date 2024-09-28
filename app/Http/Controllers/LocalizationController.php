@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Localization\LanguageStrategy;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Cookie;
 
 /**
  * Handles switching the application language.
@@ -39,6 +40,6 @@ class LocalizationController extends Controller
         $this->languageStrategy->setLocale($locale);
 
         // Redirect back to the previous page
-        return redirect()->back();
+        return redirect()->back()->withCookie(cookie('lang', $locale, 60 * 24 * 365));
     }
 }

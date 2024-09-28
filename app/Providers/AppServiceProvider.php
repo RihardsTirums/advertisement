@@ -2,9 +2,10 @@
 
 namespace App\Providers;
 
-use App\Services\Localization\LanguageStrategy;
-use App\Services\Localization\SessionLanguageStrategy;
 use Illuminate\Support\ServiceProvider;
+use App\Services\Localization\LanguageStrategy;
+use App\Services\Localization\CookieLanguageStrategy;
+use App\Services\Localization\SessionLanguageStrategy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,8 +14,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Bind the CookieLanguageStrategy to the LanguageStrategy interface
+        $this->app->bind(LanguageStrategy::class, CookieLanguageStrategy::class);
+
         // Bind the LanguageStrategy to the SessionLanguageStrategy
-        $this->app->bind(LanguageStrategy::class, SessionLanguageStrategy::class);
+        // $this->app->bind(LanguageStrategy::class, SessionLanguageStrategy::class);
     }
 
     /**
@@ -22,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register the ClearLanguageCookie Artisan command
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \App\Console\Commands\ClearLanguageCookie::class,
+            ]);
+        }
     }
 }

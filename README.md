@@ -103,9 +103,9 @@ We used the **Factory Method** pattern to decouple the logic for connecting to S
 
 ### How It Works
 
-The application supports language switching between Latvian, English, and Russian. The user can change the language using a dropdown menu, and the language is stored in the session to persist across pages.
+The application supports language switching between Latvian, English, and Russian. The user can change the language using a dropdown menu, and the language is stored in the session or cookies to persist across pages.
 
-The session-based language switching is implemented using the **Strategy Pattern**. This allows for flexibility in how the language preference is stored (e.g., sessions, cookies, etc.).
+The language switching is implemented using the **Strategy Pattern**. This allows for flexibility in how the language preference is stored (e.g., sessions, cookies, etc.).
 
 ### Design Pattern
 
@@ -113,8 +113,10 @@ We implemented the **Strategy Pattern** for language switching to separate the l
 
 - **LanguageStrategy Interface**: Defines how the locale should be set and stored.
 - **SessionLanguageStrategy**: Implements the strategy for storing the locale in the session.
+- **CookieLanguageStrategy**: Implements the strategy for storing the locale in cookies.
 - **LocalizationController**: Handles requests to change the language and delegates the storage logic to the strategy.
-- **Middleware**: Ensures the locale is applied on every request based on the session data.
+- **Middleware**: Ensures the locale is applied on every request based on the session or cookie data.
+
 
 ---
 
