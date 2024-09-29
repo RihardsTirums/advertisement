@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CategoryService;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+use App\Services\CategoryService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Controller class for handling category-related requests.
@@ -33,19 +35,46 @@ class CategoryController extends Controller
     }
 
     /**
+     * TODO: Investigate and fix the error that occurs when using the back button
+     * after switching languages; ensure that it does not throw an error or flash
+     * a message briefly.
      * Display the subcategories for a given path.
      *
-     * @param Request $request
-     * @param string|null $path
-     * @return View
+     * This method retrieves the category based on the provided path,
+     * translates slugs according to the current locale, and
+     * handles redirects if necessary.
+     *
+     * @param Request $request The current HTTP request instance.
+     * @param string|null $path The path containing slugs for the category.
+     * @return View|RedirectResponse The view for the category or a redirect response if a redirect is required.
      */
-    public function show(Request $request, string $path = null): View
+    public function show(Request $request, ?string $path = null): View|RedirectResponse
     {
         // Extract slug segments from the path.
         $slugs = explode('/', $path);
 
-        // Fetch the categories and subcategories based on the path.
-        $category = $this->categoryService->getCategoryBySlugs($slugs);
+        // Attempt to fetch the category using the slugs.
+        $category = $this->categoryService->getCategoryBySlugs($slugs ?? []);
+
+        // If no category is found, redirect to the index route.
+        if (!$category) {
+            return redirect()->route('categories.index')->with('error', 'Category not found.');
+        }
+
+        // Create a new slug path with all existing slugs in localized form.
+        $localizedSlugs = array_map(
+            fn($slug) => $this->categoryService->getSlugBySlug($slug),
+            $slugs
+        );
+        $newPath = implode('/', $localizedSlugs);
+
+        // Regenerate the URL with the new slug path.
+        $url = route('categories.show', ['path' => $newPath]);
+
+        // Redirect to the localized URL only if it differs from the current path.
+        if ($request->fullUrl() !== $url) {
+            return redirect($url);
+        }
 
         // Render the subcategories view if a valid category is found.
         return view('categories.show', compact('category'));

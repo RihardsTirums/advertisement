@@ -34,4 +34,24 @@ class CategoryRepository
             ->with('children')
             ->get();
     }
+
+    /**
+     * Get a category by its slug in any language.
+     *
+     * @param string $slug
+     * @param Category|null $parentCategory
+     * @return Category|null
+     */
+    public function getCategoryBySlug(string $slug, ?Category $parentCategory = null): ?Category
+    {
+        $query = Category::where('slug_en', $slug)
+            ->orWhere('slug_lv', $slug)
+            ->orWhere('slug_ru', $slug);
+
+        if ($parentCategory) {
+            $query->where('parent_id', $parentCategory->id);
+        }
+
+        return $query->first();
+    }
 }

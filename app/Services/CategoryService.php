@@ -50,18 +50,27 @@ class CategoryService
     {
         $category = null;
         foreach ($slugs as $slug) {
-            $category = Category::where('slug_en', $slug)
-                ->orWhere('slug_lv', $slug)
-                ->orWhere('slug_ru', $slug)
-                ->when($category, function ($query) use ($category) {
-                    return $query->where('parent_id', $category->id);
-                })
-                ->first();
-
+            $category = $this->categoryRepository->getCategoryBySlug($slug, $category);
             if (!$category) {
                 throw new ModelNotFoundException('Category not found');
             }
         }
         return $category;
+    }
+
+    /**
+     * Get the localized slug for a given slug.
+     *
+     * @param string $slug
+     * @return string
+     */
+    public function getSlugBySlug(string $slug): string
+    {
+        $category = Category::where('slug_en', $slug)
+            ->orWhere('slug_lv', $slug)
+            ->orWhere('slug_ru', $slug)
+            ->first();
+
+        return $category ? $category->getSlug() : $slug;
     }
 }
