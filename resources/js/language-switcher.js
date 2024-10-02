@@ -1,11 +1,9 @@
-// Attach the function to the window object to make it globally accessible
 window.switchLanguage = function(locale) {
-    // Send an AJAX request to the language switch endpoint
     fetch(`/localization/${locale}`, { method: 'GET', credentials: 'same-origin' })
         .then(response => {
             if (response.ok) {
-                // Reload the page to reflect the new language
-                window.location.reload();
+                // Navigate to the current path, which will now be localized
+                window.location.href = window.location.pathname;
             } else {
                 console.error('Failed to switch language');
             }
