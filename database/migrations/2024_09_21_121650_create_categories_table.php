@@ -19,9 +19,9 @@ class CreateCategoriesTable extends Migration
             $table->string('name_lv');
             $table->string('name_en');
             $table->string('name_ru');
-            $table->string('slug_lv');
-            $table->string('slug_en');
-            $table->string('slug_ru');
+            $table->string('slug_lv')->unique();
+            $table->string('slug_en')->unique();
+            $table->string('slug_ru')->unique();
             $table->timestamps();
         });
     }

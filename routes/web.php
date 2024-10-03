@@ -1,28 +1,23 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\LocalizationController;
-use App\Http\Middleware\Localization;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 
-// Apply Localization middleware to handle session-based locale
-Route::middleware([Localization::class])->group(function () {
-    // Route for language switching
-    Route::get('/localization/{locale}', LocalizationController::class)->name('localization');
+Route::group([
+    'prefix' => LaravelLocalization::setLocale(), // Automatically sets the locale prefix
+    'middleware' => [
+        LocaleSessionRedirect::class,
+        LaravelLocalizationRedirectFilter::class,
+    ]
+], function () {
+    // Define your routes here
+    Route::get('/', [\App\Http\Controllers\CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/category/{slug}', [\App\Http\Controllers\CategoryController::class, 'show'])->name('categories.show');
+    Route::get('/localization/{locale}', [\App\Http\Controllers\LocalizationController::class, '__invoke'])->name('localization');
 
-    // Route to display categories
-    Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
-    // Handle subcategories with dynamic slugs (allows for unlimited depth).
-    Route::get('/{path}', [CategoryController::class, 'show'])
-        ->where('path', '.*')
-        ->name('categories.show');
-
-    // Authenticated routes
-    Route::middleware([
-        'auth:sanctum',
-        config('jetstream.auth_session'),
-        'verified',
-    ])->group(function () {
+    Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', function () {
             return view('dashboard');
         })->name('dashboard');

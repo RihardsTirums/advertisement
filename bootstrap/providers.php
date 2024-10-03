@@ -7,4 +7,5 @@ return [
     App\Providers\RepositoryServiceProvider::class,
     App\Providers\TelescopeServiceProvider::class,
     App\Providers\RepositoryServiceProvider::class,
+    Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class,
 ];

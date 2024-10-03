@@ -65,16 +65,6 @@ class Category extends Model
     }
 
     /**
-     * Get the localized name based on the current application locale.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->{'name_' . app()->getLocale()} ?? $this->{'name_' . config('app.fallback_locale')};
-    }
-
-    /**
      * Get the localized slug based on the current application locale.
      *
      * @return string
@@ -82,5 +72,15 @@ class Category extends Model
     public function getSlug(): string
     {
         return $this->{'slug_' . app()->getLocale()} ?? $this->{'slug_' . config('app.fallback_locale')};
+    }
+
+    /**
+     * Get the localized URL for the category.
+     *
+     * @return string
+     */
+    public function getUrl(): string
+    {
+        return route('categories.show', ['slug' => $this->getSlug()]);
     }
 }
